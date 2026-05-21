@@ -573,8 +573,8 @@ function handleCorrect(card1, card2) {
 
   setTimeout(() => {
     state.cards = state.cards.filter(c => c.id !== card1.id && c.id !== card2.id);
-    if (el1 && el1.parentNode) el1.parentNode.removeChild(el1);
-    if (el2 && el2.parentNode) el2.parentNode.removeChild(el2);
+    // DOM에서 제거하지 않고 빈 자리 유지 — 터진 자리가 비어 보이게 함
+    // pop-out 애니메이션이 forwards로 고정돼 있어 레이아웃 공간은 살아있고 시각적으로만 사라짐
 
     state.selectedCardIds = [];
 
