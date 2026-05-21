@@ -22,9 +22,8 @@
       const id = Number(el.dataset.cardId);
       const card = state.cards.find(c => c.id === id);
       if (!card) return;
-      el.dataset.category = card.category;
-      const idx = getCategoryIndex(card.category);
-      if (idx >= 0) el.dataset.categoryIdx = idx;
+      // 카드에는 카테고리 색 힌트를 주지 않음 (정답 유추 방지)
+      // data-category-idx 를 의도적으로 설정하지 않는다
       // 풍선마다 살짝 다른 떠다님 (자연스럽게)
       if (!el.style.getPropertyValue('--float-delay')) {
         el.style.setProperty('--float-delay', (Math.random() * -3).toFixed(2) + 's');

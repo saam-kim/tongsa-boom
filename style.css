@@ -1269,12 +1269,7 @@ input[type="text"]:focus {
   filter: brightness(0.85);
 }
 
-/* 카테고리별 색 적용 */
-.card[data-category-idx="0"] { --card-bg: var(--balloon-0); --card-glow: var(--glow-0); --card-text: #5a0a26; }
-.card[data-category-idx="1"] { --card-bg: var(--balloon-1); --card-glow: var(--glow-1); --card-text: #1a0a4a; }
-.card[data-category-idx="2"] { --card-bg: var(--balloon-2); --card-glow: var(--glow-2); --card-text: #003f4a; }
-.card[data-category-idx="3"] { --card-bg: var(--balloon-3); --card-glow: var(--glow-3); --card-text: #4a3a00; }
-.card[data-category-idx="4"] { --card-bg: var(--balloon-4); --card-glow: var(--glow-4); --card-text: #0a3a26; }
+/* 카드는 카테고리 색을 표시하지 않음 — 색이 정답 힌트가 되는 것을 방지 */
 
 body[data-theme="galaxy"] .card {
   box-shadow:
