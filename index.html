@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>통사 풍선 터뜨리기</title>
+
+  <!-- 폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="arcade">
+
+  <!-- 떠다니는 배경 풍선 (장식용) -->
+  <div class="bg-balloons" aria-hidden="true">
+    <span class="bg-balloon b0"></span>
+    <span class="bg-balloon b1"></span>
+    <span class="bg-balloon b2"></span>
+    <span class="bg-balloon b3"></span>
+    <span class="bg-balloon b4"></span>
+    <span class="bg-balloon b5"></span>
+    <span class="bg-balloon b6"></span>
+    <span class="bg-balloon b7"></span>
+  </div>
+
+  <!-- 파티클 캔버스 (풍선 터질 때) -->
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- ══════════════════════════════════════════════
+       시작 화면 — 교사 모드 / 학생 모드 공용
+       ══════════════════════════════════════════════ -->
+  <div id="start-screen" class="screen active">
+
+    <!-- ─── 교사 모드 ─── -->
+    <div id="teacher-section" class="start-container teacher-stage">
+
+      <header class="teacher-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span class="brand-balloon bm-0"></span>
+            <span class="brand-balloon bm-1"></span>
+            <span class="brand-balloon bm-2"></span>
+          </div>
+          <div class="brand-text">
+            <h1 class="game-title">통사 풍선 터뜨리기</h1>
+            <p class="game-subtitle">교사 컨트롤 패널 · Teacher Console</p>
+          </div>
+        </div>
+        <button id="guide-btn" class="btn btn-guide" type="button">
+          <span class="btn-icon">?</span>활동 가이드
+        </button>
+      </header>
+
+      <!-- 연동 설정 패널 -->
+      <div class="settings-panel">
+        <button class="settings-toggle" id="settings-toggle" type="button">
+          <span class="settings-toggle-label">
+            <span class="gear-icon" aria-hidden="true">⚙</span>연동 설정
+          </span>
+          <div class="settings-toggle-right">
+            <span id="connect-status" class="connect-status"></span>
+            <span class="toggle-arrow">▾</span>
+          </div>
+        </button>
+        <div class="settings-body" id="settings-body" style="display:none;">
+          <div class="settings-field">
+            <label for="setting-game-url">게임 접속 URL <small>(QR 코드 생성에 사용)</small></label>
+            <input type="url" id="setting-game-url"
+              placeholder="예: https://saam-kim.github.io/tongsa-boom/index.html"
+              autocomplete="off">
+          </div>
+          <div class="settings-field">
+            <label for="setting-gas-url">Google Apps Script URL <small>(결과 스프레드시트 저장)</small></label>
+            <input type="url" id="setting-gas-url"
+              placeholder="예: https://script.google.com/macros/s/.../exec"
+              autocomplete="off">
+          </div>
+          <div class="settings-actions">
+            <button id="settings-save-btn" class="btn btn-save" type="button">저장</button>
+            <span id="settings-saved-msg" class="settings-saved-msg" style="display:none;">저장되었습니다 ✓</span>
+            <button id="settings-guide-link" class="settings-guide-link" type="button">설정 방법 보기 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="start-error" class="error-box" style="display:none;"></div>
+
+      <div class="start-form teacher-form">
+
+        <!-- 학습 주제 -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-step">1</span>학습 주제 선택
+          </label>
+          <div id="topic-list" class="topic-list"></div>
+        </div>
+
+        <!-- 반 선택 -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-step">2</span>반 선택
+          </label>
+          <div id="class-buttons" class="class-buttons"></div>
+        </div>
+
+        <!-- QR 생성 버튼 -->
+        <button id="show-qr-btn" class="btn btn-primary btn-full" disabled>
+          <span class="btn-content">
+            <span class="btn-label">QR 코드 생성하기</span>
+            <span class="btn-arrow">→</span>
+          </span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ─── 학생 모드 ─── -->
+    <div id="student-section" class="start-container student-stage" style="display:none;">
+
+      <header class="student-header">
+        <div class="brand brand-center">
+          <div class="brand-mark" aria-hidden="true">
+            <span class="brand-balloon bm-0"></span>
+            <span class="brand-balloon bm-1"></span>
+            <span class="brand-balloon bm-2"></span>
+          </div>
+          <h1 class="game-title">통사 풍선 터뜨리기</h1>
+        </div>
+      </header>
+
+      <div class="student-info-badges">
+        <div class="info-badge badge-topic">
+          <span class="badge-label">오늘의 주제</span>
+          <span id="student-topic-name" class="badge-value"></span>
+        </div>
+        <div class="info-badge badge-class">
+          <span class="badge-label">반</span>
+          <span id="student-class-name" class="badge-value"></span>
+        </div>
+      </div>
+
+      <div class="start-form student-form">
+        <div class="form-group">
+          <label for="student-nickname-input" class="form-label">
+            닉네임을 입력하세요
+          </label>
+          <input
+            type="text"
+            id="student-nickname-input"
+            maxlength="10"
+            placeholder="이름 또는 별명 (최대 10자)"
+            autocomplete="off"
+          >
+        </div>
+        <button id="student-start-btn" class="btn btn-primary btn-full">
+          <span class="btn-content">
+            <span class="btn-label">게임 시작</span>
+            <span class="btn-arrow">→</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="student-rules">
+        <p class="rules-title">잠깐, 게임 규칙!</p>
+        <ol class="rules-list">
+          <li><b>개념 유형</b>을 먼저 골라요</li>
+          <li>그 유형에 해당하는 <b>풍선 2개</b>를 터뜨려요</li>
+          <li>오답이면 <b>+3초</b> 페널티!</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       QR 화면 (교사가 프로젝터에 띄움)
+       ══════════════════════════════════════════════ -->
+  <div id="qr-screen" class="screen">
+
+    <div class="qr-back-bar">
+      <button id="qr-back-btn" class="btn btn-ghost">
+        <span class="btn-arrow back">←</span>뒤로
+      </button>
+      <span class="qr-back-hint">학생들이 QR을 스캔하면 수업을 시작하세요</span>
+    </div>
+
+    <div class="qr-body">
+
+      <div class="qr-stage">
+        <div class="qr-stage-glow" aria-hidden="true"></div>
+
+        <div class="qr-badges">
+          <div class="info-badge badge-topic">
+            <span class="badge-label">주제</span>
+            <span id="qr-topic-name" class="badge-value"></span>
+          </div>
+          <div class="info-badge badge-class">
+            <span class="badge-label">반</span>
+            <span id="qr-class-name" class="badge-value"></span>
+          </div>
+        </div>
+
+        <div class="qr-frame">
+          <div class="qr-frame-inner">
+            <img id="qr-image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="QR 코드" class="qr-img">
+            <div id="qr-error" class="qr-error" style="display:none;">
+              QR 이미지를 불러올 수 없습니다.<br>아래 주소를 학생과 공유하세요.
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-instruction">
+          <span class="qr-pulse-dot" aria-hidden="true"></span>
+          태블릿 카메라로 QR 코드를 스캔하세요
+        </div>
+
+        <div id="qr-url-box" class="qr-url-box">
+          <span class="qr-url-label">접속 주소</span>
+          <span id="qr-url-text" class="qr-url-text"></span>
+        </div>
+
+        <div id="qr-no-url-warning" class="qr-no-url-warning" style="display:none;">
+          ⚠ 게임 접속 URL이 설정되지 않았습니다.<br>
+          뒤로 돌아가 <strong>연동 설정</strong>에서 게임 URL을 입력하세요.
+        </div>
+
+        <a id="qr-direct-link" href="#" class="qr-direct-link" style="display:none;">
+          이 링크로 직접 테스트하기 →
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       게임 화면
+       ══════════════════════════════════════════════ -->
+  <div id="game-screen" class="screen">
+
+    <header class="game-header">
+      <div class="game-header-left">
+        <span id="topic-title" class="game-topic-name"></span>
+        <span id="class-badge-game" class="class-badge-small" style="display:none;"></span>
+      </div>
+
+      <div class="game-stats">
+        <div class="stat-chip stat-timer">
+          <span class="stat-icon" aria-hidden="true">⏱</span>
+          <span class="stat-label">시간</span>
+          <strong><span id="timer">0.0</span>s</strong>
+        </div>
+        <div class="stat-chip stat-wrong">
+          <span class="stat-icon" aria-hidden="true">✗</span>
+          <span class="stat-label">오답</span>
+          <strong><span id="wrong-count">0</span></strong>
+        </div>
+        <div class="stat-chip stat-remaining">
+          <span class="stat-icon" aria-hidden="true">●</span>
+          <span class="stat-label">남은 풍선</span>
+          <strong><span id="remaining-count">0</span></strong>
+        </div>
+      </div>
+
+      <button id="restart-btn" class="btn btn-ghost game-restart">재시작</button>
+    </header>
+
+    <div id="feedback-bar" class="feedback-bar" style="display:none;">
+      <span id="feedback-text"></span>
+    </div>
+
+    <section class="category-section">
+      <span class="category-section-label">먼저 개념 유형을 골라요</span>
+      <div id="category-buttons" class="category-buttons"></div>
+    </section>
+
+    <section class="cards-section">
+      <div id="cards-grid" class="cards-grid"></div>
+    </section>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       결과 화면
+       ══════════════════════════════════════════════ -->
+  <div id="result-screen" class="screen">
+    <div class="result-container">
+
+      <header class="result-header">
+        <div class="result-confetti-deco" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <h2 class="result-title">CLEAR!</h2>
+        <p id="result-subtitle" class="result-subtitle"></p>
+      </header>
+
+      <!-- 점수 -->
+      <div class="result-card">
+        <div class="result-row">
+          <span class="result-label">닉네임</span>
+          <span id="result-nickname" class="result-value"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">주제</span>
+          <span id="result-topic" class="result-value"></span>
+        </div>
+        <div id="result-class-row" class="result-row" style="display:none;">
+          <span class="result-label">반</span>
+          <span id="result-class" class="result-value"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">클리어 시간</span>
+          <span id="result-clear-time" class="result-value"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">오답 횟수</span>
+          <span id="result-wrong-count" class="result-value"></span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">오답 페널티</span>
+          <span id="result-penalty" class="result-value"></span>
+        </div>
+        <div class="result-row result-row-final">
+          <span class="result-label">최종 기록</span>
+          <span id="result-final-time" class="result-value result-final-value"></span>
+        </div>
+      </div>
+
+      <!-- 랭킹 -->
+      <div class="ranking-card">
+        <div class="ranking-title-row">
+          <h3 class="ranking-title">
+            <span class="trophy" aria-hidden="true">🏆</span>랭킹 TOP 10
+          </h3>
+          <span id="ranking-source-badge" class="ranking-source-badge"></span>
+        </div>
+        <div id="ranking-list" class="ranking-list"></div>
+        <div id="ranking-loading" class="ranking-loading" style="display:none;">
+          스프레드시트에서 랭킹을 불러오는 중…
+        </div>
+      </div>
+
+      <!-- 개념 정리 -->
+      <div class="concept-summary-card">
+        <h3 class="concept-summary-title">개념 정리 노트</h3>
+        <p class="concept-summary-desc">이번 게임에서 만난 개념들을 다시 살펴보세요.</p>
+        <div id="concept-summary"></div>
+      </div>
+
+      <!-- 버튼 -->
+      <div class="result-buttons">
+        <button id="retry-btn" class="btn btn-primary">
+          <span class="btn-content">다시 하기 <span class="btn-arrow">↻</span></span>
+        </button>
+        <button id="back-btn" class="btn btn-secondary">주제 선택으로</button>
+        <button id="clear-ranking-btn" class="btn btn-danger">랭킹 초기화</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       활동 가이드 모달
+       ══════════════════════════════════════════════ -->
+  <div id="guide-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+    <div class="modal-box">
+
+      <div class="modal-header">
+        <h2 class="modal-title">교사 활동 가이드</h2>
+        <button id="guide-close-btn" class="modal-close" type="button" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <section class="guide-section">
+          <h3 class="guide-section-title">수업 진행 순서</h3>
+          <ol class="guide-ol">
+            <li>교사 화면에서 <strong>학습 주제</strong>와 <strong>반</strong>을 선택합니다.</li>
+            <li><strong>QR 코드 생성하기</strong> 버튼을 누르면 전체화면 QR이 열려요.</li>
+            <li>QR 화면을 교실 프로젝터/TV에 띄우세요.</li>
+            <li>학생들이 태블릿으로 QR 스캔 → 닉네임 입력 → 게임 시작!</li>
+            <li>모두 완료 후 Google Sheets에서 반별 기록을 확인합니다.</li>
+          </ol>
+          <div class="guide-tip">
+            💡 QR 화면 안의 접속 주소를 직접 눌러도 교사가 학생 화면을 미리 체험할 수 있어요.
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <h3 class="guide-section-title">처음 설정 방법</h3>
+
+          <div class="guide-step-block">
+            <div class="guide-step-badge">1</div>
+            <div class="guide-step-content">
+              <strong>게임 접속 URL 설정</strong>
+              <p>이 게임 파일을 웹에 업로드하세요 (GitHub Pages 추천).
+              GitHub Pages 주소는 보통 <code>https://[아이디].github.io/[저장소명]/index.html</code> 형식입니다.
+              이 주소를 '<strong>연동 설정 &gt; 게임 접속 URL</strong>'에 입력하고 저장하면 QR 코드가 생성됩니다.</p>
+            </div>
+          </div>
+
+          <div class="guide-step-block">
+            <div class="guide-step-badge">2</div>
+            <div class="guide-step-content">
+              <strong>Google Sheets 연동 (선택)</strong>
+              <p>설정하면 학생 플레이 결과가 스프레드시트에 자동 저장됩니다.</p>
+              <ol class="guide-sub-ol">
+                <li>Google Drive에서 <strong>새 스프레드시트</strong>를 만드세요.</li>
+                <li>상단 메뉴: <code>확장 프로그램 → Apps Script</code></li>
+                <li>기존 코드를 모두 지우고, <code>config.js</code> 파일 상단 주석 안의 <strong>★ GAS 코드</strong>를 붙여넣으세요.</li>
+                <li>저장 (Ctrl+S) 후: <code>배포 → 새 배포 → 웹 앱</code></li>
+                <li>실행 계정: <strong>나</strong> / 액세스 권한: <strong>모든 사용자 (익명 포함)</strong>로 배포</li>
+                <li>받은 URL을 '<strong>연동 설정 &gt; Google Apps Script URL</strong>'에 입력하고 저장합니다.</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <h3 class="guide-section-title">학습 주제 추가 방법</h3>
+          <p><code>data.js</code> 파일을 텍스트 편집기로 열고, <code>gameSets</code> 배열에 새 주제를 추가합니다.</p>
+          <ul class="guide-ul">
+            <li>각 주제는 <code>id</code>, <code>title</code>, <code>description</code>, <code>categories</code>로 구성됩니다.</li>
+            <li>각 개념 유형에는 카드가 <strong>6개 이상 (짝수)</strong> 필요합니다.</li>
+            <li><code>data.js</code> 파일 안의 주석 예시를 참고하세요.</li>
+          </ul>
+          <div class="guide-tip">
+            💡 통합사회뿐 아니라 정치와 법, 경제, 사회문화 어느 과목에도 활용할 수 있어요.
+          </div>
+        </section>
+
+        <section class="guide-section">
+          <h3 class="guide-section-title">게임 규칙 요약 (학생 안내용)</h3>
+          <ol class="guide-ol">
+            <li>화면 상단의 <strong>개념 유형 버튼</strong>을 먼저 선택합니다.</li>
+            <li>그 유형에 해당하는 <strong>풍선 2개</strong>를 고릅니다.</li>
+            <li>정답이면 풍선이 터집니다. 오답이면 <strong>+3초 페널티</strong>!</li>
+            <li>모든 풍선을 없애면 기록이 랭킹에 등록됩니다.</li>
+          </ol>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       Tweaks 패널 (교사용 빠른 미리보기)
+       ══════════════════════════════════════════════ -->
+  <div id="tweaks-panel" class="tweaks-panel" style="display:none;">
+    <div class="tweaks-header">
+      <span class="tweaks-title">Tweaks</span>
+      <button id="tweaks-close" class="tweaks-close" type="button" aria-label="닫기">✕</button>
+    </div>
+    <div class="tweaks-body">
+
+      <div class="tweak-section">
+        <div class="tweak-label">테마</div>
+        <div class="tweak-radio" data-tweak="theme">
+          <button data-value="arcade" class="active">네온 아케이드</button>
+          <button data-value="festival">선셋 페스타</button>
+          <button data-value="galaxy">갤럭시 팝</button>
+        </div>
+      </div>
+
+      <div class="tweak-section">
+        <div class="tweak-label">카드 크기</div>
+        <div class="tweak-radio" data-tweak="cardSize">
+          <button data-value="sm">작게</button>
+          <button data-value="md" class="active">보통</button>
+          <button data-value="lg">크게</button>
+        </div>
+      </div>
+
+      <div class="tweak-section">
+        <div class="tweak-label">풍선 둥둥</div>
+        <div class="tweak-toggle" data-tweak="floating">
+          <button data-value="on" class="active">켜기</button>
+          <button data-value="off">끄기</button>
+        </div>
+      </div>
+
+      <div class="tweak-section">
+        <div class="tweak-label">파티클</div>
+        <div class="tweak-toggle" data-tweak="confetti">
+          <button data-value="on" class="active">켜기</button>
+          <button data-value="off">끄기</button>
+        </div>
+      </div>
+
+      <div class="tweak-section">
+        <div class="tweak-label">화면 미리보기 (점프)</div>
+        <div class="tweak-jump">
+          <button data-jump="start-screen">시작</button>
+          <button data-jump="qr-screen">QR</button>
+          <button data-jump="game-screen">게임</button>
+          <button data-jump="result-screen">결과</button>
+        </div>
+        <p class="tweak-hint">※ 실제 플레이 흐름은 그대로 작동해요. 미리보기는 화면 전환만!</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tweak defaults (host가 파일에 다시 저장할 수 있도록 마커 사용) -->
+  <script>
+    window.TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "theme": "arcade",
+      "cardSize": "sm",
+      "floating": "on",
+      "confetti": "off"
+    }/*EDITMODE-END*/;
+  </script>
+
+  <!-- 게임 로직 -->
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+
+  <!-- 풍선/파티클/Tweaks 강화 -->
+  <script src="enhance.js"></script>
+</body>
+</html>
