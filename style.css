@@ -128,9 +128,9 @@ body[data-theme="galaxy"] {
 /* ─────────────────────────────────────────────
    카드 사이즈 (Tweak)
    ───────────────────────────────────────────── */
-body[data-card-size="sm"] { --card-min: 120px; --card-h: 110px; --card-font: 0.85rem; }
-body[data-card-size="md"] { --card-min: 150px; --card-h: 130px; --card-font: 0.95rem; }
-body[data-card-size="lg"] { --card-min: 185px; --card-h: 155px; --card-font: 1.05rem; }
+body[data-card-size="sm"] { --card-min: 140px; --card-h: 125px; --card-font: 0.88rem; }
+body[data-card-size="md"] { --card-min: 165px; --card-h: 145px; --card-font: 0.95rem; }
+body[data-card-size="lg"] { --card-min: 195px; --card-h: 168px; --card-font: 1.05rem; }
 
 /* ═══════════════════════════════════════════════
    기본 레이아웃
